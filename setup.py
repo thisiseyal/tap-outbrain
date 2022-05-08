@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 import os.path
 
 setup(name='tap-outbrain',
-      version='0.4.0',
+      version='0.4.1',
       description='Singer.io tap for extracting data from the Outbrain API',
       author='Eyal',
       url='https://singer.io',
@@ -18,5 +18,8 @@ setup(name='tap-outbrain',
           [console_scripts]
           tap-outbrain=tap_outbrain:main
       ''',
-      packages=['tap_outbrain']
+      packages=['tap_outbrain'],
+      package_data = {
+        "schemas": ["tap_outbrain/schemas/*.json"]
+      },
 )
