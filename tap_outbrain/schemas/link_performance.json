@@ -1,0 +1,50 @@
+{
+    "properties": {
+        "campaignId": {
+            "description": "The campaign ID for this record.",
+            "type": "string"
+        },
+        "clicks": {
+            "description": "Total PromotedLinks clicks across the entire query range.",
+            "type": "number"
+        },
+        "conversionRate": {
+            "description": "The average rate of conversions per click percentage across the entire query range. Calculated as: (conversions / clicks)/100",
+            "type": "number"
+        },
+        "conversions": {
+            "description": "The total number of conversions calculated across the entire query range.",
+            "type": "number"
+        },
+        "cpa": {
+            "description": "The average CPA (Cost Per Acquisition) calculated across the entire query range. Calculated as: (spend / conversions)",
+            "type": "number"
+        },
+        "ctr": {
+            "description": "The average CTR (Click Through Rate) percentage across the entire query range (clicks / impressions)/100.",
+            "type": "number"
+        },
+        "ecpc": {
+            "description": "The effective (calculated) average CPC (Cost Per Click) across the entire query range. Calculated as: (spend / clicks)",
+            "type": "number"
+        },
+        "fromDate": {
+            "description": "The start date for this record.",
+            "format": "date",
+            "type": "string"
+        },
+        "impressions": {
+            "description": "Total number of PromotedLinks impressions across the entire query range.",
+            "type": "number"
+        },
+        "linkId": {
+            "description": "The link ID for this record.",
+            "type": "string"
+        },
+        "spend": {
+            "description": "The total amount of money spent across the entire query range.",
+            "type": "number"
+        }
+    },
+    "type": "object"
+}

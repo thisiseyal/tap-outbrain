@@ -2,13 +2,9 @@
 
 from decimal import Decimal
 
-import argparse
-import base64
-import copy
 import datetime
 import json
 import os
-import sys
 import time
 import dateutil.parser
 
@@ -16,10 +12,13 @@ import backoff
 import requests
 import singer
 import singer.requests
-from singer import utils
+from singer import utils, metadata
+from singer.catalog import Catalog, CatalogEntry
+from singer.schema import Schema
 
 import tap_outbrain.schemas as schemas
 
+REQUIRED_CONFIG_KEYS = []
 LOGGER = singer.get_logger()
 SESSION = requests.Session()
 
@@ -41,6 +40,45 @@ MARKETERS_CAMPAIGNS_MAX_LIMIT = 50
 # see need for it. (Tested with 200 at least)
 REPORTS_MARKETERS_PERIODIC_MAX_LIMIT = 100
 
+def get_abs_path(path):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+
+def load_schemas():
+    """ Load schemas from schemas folder """
+    schemas = {}
+    for filename in os.listdir(get_abs_path('schemas')):
+        path = get_abs_path('schemas') + '/' + filename
+        file_raw = filename.replace('.json', '')
+        with open(path) as file:
+            schemas[file_raw] = Schema.from_dict(json.load(file))
+    return schemas
+
+
+def discover():
+    raw_schemas = load_schemas()
+    streams = []
+    for stream_id, schema in raw_schemas.items():
+        # TODO: populate any metadata and stream's key properties here..
+        stream_metadata = []
+        key_properties = []
+        streams.append(
+            CatalogEntry(
+                tap_stream_id=stream_id,
+                stream=stream_id,
+                schema=schema,
+                key_properties=key_properties,
+                metadata=stream_metadata,
+                replication_key=None,
+                is_view=None,
+                database=None,
+                table=None,
+                row_count=None,
+                stream_alias=None,
+                replication_method=None,
+            )
+        )
+    return Catalog(streams)
 
 @backoff.on_exception(backoff.constant,
                       (requests.exceptions.RequestException),
@@ -348,12 +386,13 @@ def sync_marketers(access_token, account_id):
     return marketers
 
 
-def do_sync(args):
+def sync(config, state = None, catalog = None):
     # pylint: disable=global-statement
     global DEFAULT_START_DATE
-    state = DEFAULT_STATE
+    if not state:
+        state = DEFAULT_STATE
 
-    with open(args.config) as config_file:
+    with open(config) as config_file:
         config = json.load(config_file)
         CONFIG.update(config)
 
@@ -395,6 +434,9 @@ def do_sync(args):
     # NEVER RAISE THIS ABOVE DEBUG!
     LOGGER.debug('Using access token `{}`'.format(access_token))
 
+    for stream in catalog.get_selected_streams(state):
+        LOGGER.info("Syncing stream:" + stream.tap_stream_id)
+
     singer.write_schema('marketers', schemas.marketer, key_properties=['id'])
     singer.write_schema('campaigns',
                         schemas.campaign,
@@ -411,27 +453,23 @@ def do_sync(args):
     for marketer in marketers:
         sync_campaigns(state, access_token, marketer['id'])
 
-
-def main_impl():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '-c', '--config', help='Config file', required=True)
-    parser.add_argument(
-        '-s', '--state', help='State file')
-
-    args = parser.parse_args()
-
-    do_sync(args)
-
-
+@utils.handle_top_exception(LOGGER)
 def main():
-    try:
-        main_impl()
-    except Exception as exc:
-        LOGGER.critical(exc)
-        raise exc
+    # Parse command line arguments
+    args = utils.parse_args(REQUIRED_CONFIG_KEYS)
+
+    # If discover flag was passed, run discovery mode and dump output to stdout
+    if args.discover:
+        catalog = discover()
+        catalog.dump()
+    # Otherwise run in sync mode
+    else:
+        if args.catalog:
+            catalog = args.catalog
+        else:
+            catalog = discover()
+        sync(args.config, args.state, catalog)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

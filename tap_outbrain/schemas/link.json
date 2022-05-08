@@ -1,0 +1,63 @@
+{
+    "properties": {
+        "archived": {
+            "description": "Designates whether this PromotedLink is archived.",
+            "type": "boolean"
+        },
+        "cachedImageUrl": {
+            "description": "The URL of the PromotedLink's image, cached on Outbrain's servers, i.e. \"http://images.outbrain.com/imageserver/v2/s/gtE/n/plcyz/abc/iGYzT/plcyz-f8A-158x110.jpg\"",
+            "type": "string"
+        },
+        "campaignId": {
+            "description": "The ID of the campaign to which the PromotedLink belongs, i.e. \"00f4b02153ee75f3c9dc4fc128ab041963\"",
+            "type": "string"
+        },
+        "cpc": {
+            "description": "Cost per click, i.e. 0.58",
+            "type": "number"
+        },
+        "creationTime": {
+            "description": "The time when the PromotedLink was created, i.e. \"2013-01-14T07:19:16Z\"",
+            "format": "date-time",
+            "type": "string"
+        },
+        "documentLanguage": {
+            "description": "The 2-letter code for the language of this PromotedLink (via the PromotedLinks URL), i.e. \"EN\"",
+            "type": "string"
+        },
+        "enabled": {
+            "description": "Designates whether this PromotedLink will be served.",
+            "type": "boolean"
+        },
+        "id": {
+            "description": "ID of this PromotedLink, i.e. \"00f4b02153ee75f3c9dc4fc128ab041962\"",
+            "type": "string"
+        },
+        "lastModified": {
+            "description": "The time when the PromotedLink was last modified, i.e. \"2013-03-16T10:32:31Z\"",
+            "format": "date-time",
+            "type": "string"
+        },
+        "sectionName": {
+            "description": "The section name of the site the PromotedLink URL points to, i.e. \"Sports\"",
+            "type": "string"
+        },
+        "siteName": {
+            "description": "The name of the publisher the PromotedLink URL points to, i.e. \"cnn.com\"",
+            "type": "string"
+        },
+        "status": {
+            "description": "The review status of the PromotedLink, i.e. \"PENDING\"",
+            "type": "string"
+        },
+        "text": {
+            "description": "The text of the PromotedLink, i.e. \"Google to take over huge NASA hangar, give execs' private planes a home\"",
+            "type": "string"
+        },
+        "url": {
+            "description": "The URL visitors will be sent to upon clicking the PromotedLink, i.e. \"http://www.engadget.com/2014/02/11/nasa-google-hangar-one/\"",
+            "type": "string"
+        }
+    },
+    "type": "object"
+}

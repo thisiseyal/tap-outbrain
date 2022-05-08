@@ -1,0 +1,31 @@
+{
+    "properties": {
+        "blockedSites": {
+            "type": "string"
+        },
+        "creationTime": {
+            "format": "date-time",
+            "type": "string"
+        },
+        "currency": {
+            "type": "string"
+        },
+        "enabled": {
+            "type": "boolean"
+        },
+        "id": {
+            "type": "number"
+        },
+        "lastModified": {
+            "format": "date-time",
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "useFirstPartyCookie": {
+            "type": "boolean"
+        }
+    },
+    "type": "object"
+}
