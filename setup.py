@@ -22,4 +22,5 @@ setup(name='tap-outbrain',
       package_data = {
         "schemas": ["tap_outbrain/schemas/*.json"]
       },
+      include_package_data=True,
 )
