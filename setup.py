@@ -18,9 +18,10 @@ setup(name='tap-outbrain',
           [console_scripts]
           tap-outbrain=tap_outbrain:main
       ''',
-      packages=['tap_outbrain'],
+      packages=find_packages(),
       package_data = {
-        "schemas": ["tap_outbrain/schemas/*.json"]
+        "schemas": ["tap_outbrain/schemas/*.json"],
+        'tap_outbrain': ['schemas/*.json'],
       },
       include_package_data=True,
 )
