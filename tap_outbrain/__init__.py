@@ -392,9 +392,7 @@ def sync(config, state = None, catalog = None):
     if not state:
         state = DEFAULT_STATE
 
-    with open(config) as config_file:
-        config = json.load(config_file)
-        CONFIG.update(config)
+    CONFIG.update(config)
 
     missing_keys = []
     if 'username' not in config:
@@ -434,8 +432,8 @@ def sync(config, state = None, catalog = None):
     # NEVER RAISE THIS ABOVE DEBUG!
     LOGGER.debug('Using access token `{}`'.format(access_token))
 
-    # for stream in catalog.get_selected_streams(state):
-    #     LOGGER.info("Syncing stream:" + stream.tap_stream_id)
+    for stream in catalog.get_selected_streams(state):
+        LOGGER.info("Syncing stream:" + stream.tap_stream_id)
     LOGGER.info(f'Writing schemas and starting full sync..')
 
     singer.write_schema('marketers', schemas.marketer, key_properties=['id'])
