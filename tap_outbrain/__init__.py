@@ -332,7 +332,7 @@ def sync_campaign_page(state, access_token, account_id, campaign_page):
                  in campaign_page.get('campaigns', [])]
 
     for campaign in campaigns:
-        singer.write_record('campaigns', campaign,
+        singer.write_record('campaign', campaign,
                             time_extracted=utils.now())
         sync_campaign_performance(state, access_token, account_id,
                                   campaign.get('id'))
@@ -387,7 +387,7 @@ def sync_marketers(access_token):
 
     # Emit rows
     for marketer in marketers:
-        singer.write_record('marketers', marketer, time_extracted=utils.now())
+        singer.write_record('marketer', marketer, time_extracted=utils.now())
 
     LOGGER.info('Done!')
 
@@ -440,8 +440,8 @@ def sync(config, state = None, catalog = None):
         LOGGER.info("Syncing stream:" + stream.tap_stream_id)
     LOGGER.info(f'Writing schemas and starting full sync..')
 
-    singer.write_schema('marketers', schemas.marketer, key_properties=['id'])
-    singer.write_schema('campaigns',
+    singer.write_schema('marketer', schemas.marketer, key_properties=['id'])
+    singer.write_schema('campaign',
                         schemas.campaign,
                         key_properties=["id"])
     singer.write_schema('campaign_performance',
