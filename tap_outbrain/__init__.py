@@ -29,7 +29,7 @@ DEFAULT_STATE = {
     'campaign_performance': {}
 }
 
-DEFAULT_START_DATE = '2016-08-01'
+DEFAULT_START_DATE = '2022-05-01'
 
 # We can retrieve at most 2 campaigns per minute. We only have 5.5 hours
 # to run so that works out to about 660 (120 campaigns per hour * 5.5 =
@@ -214,6 +214,8 @@ def sync_performance(state, access_token, account_id, table_name, state_sub_id,
 
     last_request_start = None
 
+    LOGGER.info('Iterating through date ranges: {}'.format(str(date_ranges)))
+
     for date_range in date_ranges:
         LOGGER.info(
             'Pulling {} for {} from {} to {}'
@@ -233,10 +235,13 @@ def sync_performance(state, access_token, account_id, table_name, state_sub_id,
         params.update(extra_params)
 
         last_request_start = utils.now()
-        response = request(
+        raw_response = request(
             '{}/reports/marketers/{}/periodic'.format(BASE_URL, account_id),
             access_token,
-            params).json()
+            params)
+        with raw_response:
+            response = raw_response.json()
+        
         if REPORTS_MARKETERS_PERIODIC_MAX_LIMIT < response.get('totalResults'):
             LOGGER.warn(
                 'More performance data (`{}`) than the tap can currently retrieve (`{}`)'.format(
@@ -289,10 +294,12 @@ def parse_campaign(campaign):
 def get_campaigns_page(account_id, access_token, offset):
     # NOTE: We probably should be more aggressive about ensuring that the
     # response was successful.
-    return request(
+    resp = request(
         '{}/marketers/{}/campaigns'.format(BASE_URL, account_id),
         access_token, {'limit': MARKETERS_CAMPAIGNS_MAX_LIMIT,
-                       'offset': offset}).json()
+                       'offset': offset})
+    with resp:
+        return resp.json()
 
 
 def get_campaign_pages(account_id, access_token):
@@ -302,8 +309,7 @@ def get_campaign_pages(account_id, access_token):
     while more_campaigns:
         LOGGER.info('Retrieving campaigns from offset `{}`'.format(
             offset))
-        campaign_page = get_campaigns_page(account_id, access_token,
-                                           offset)
+        campaign_page = get_campaigns_page(account_id, access_token, offset)
         if TAP_CAMPAIGN_COUNT_ERROR_CEILING < campaign_page.get('totalCount'):
             msg = 'Tap found `{}` campaigns which is more than can be retrieved in the alloted time (`{}`).'.format(
                 campaign_page.get('totalCount'), TAP_CAMPAIGN_COUNT_ERROR_CEILING)
@@ -354,25 +360,27 @@ def parse_marketer(marketer):
     }
 
 
-def get_marketers(account_id, access_token):
+def get_marketers(access_token):
     """
     Retrieve all Marketers associated with the current user
     """
 
-    url = '{}/marketers'.format(BASE_URL, account_id)
+    url = '{}/marketers'.format(BASE_URL)
 
-    marketers = request(url, access_token).json()['marketers']
+    marketers_resp = request(url, access_token)
+    with marketers_resp:
+        marketers = marketers_resp.json()['marketers']
 
     LOGGER.info('Retrieved %s marketers', len(marketers))
 
     return marketers
 
 
-def sync_marketers(access_token, account_id):
+def sync_marketers(access_token):
     LOGGER.info('Syncing marketers.')
 
     # Retrieve account data
-    marketers = get_marketers(account_id, access_token)
+    marketers = get_marketers(access_token)
 
     # Parse data types
     marketers = map(parse_marketer, marketers)
@@ -410,19 +418,15 @@ def sync(config, state = None, catalog = None):
     else:
         account_id = config['account_id']
 
-    if 'start_date' not in config:
-        missing_keys.append('start_date')
-    else:
-        # only want the date
-        DEFAULT_START_DATE = config['start_date'][:10]
-
-    if missing_keys:
-        LOGGER.fatal("Missing {}.".format(", ".join(missing_keys)))
-        raise RuntimeError
+    if 'start_date' in config:
+        DEFAULT_START_DATE = config['start_date']
 
     access_token = config.get('access_token')
 
     if access_token is None:
+        if missing_keys:
+            LOGGER.fatal("Missing {}.".format(", ".join(missing_keys)))
+            raise RuntimeError
         access_token = generate_token(username, password)
 
     if access_token is None:
@@ -446,7 +450,7 @@ def sync(config, state = None, catalog = None):
                         bookmark_properties=["fromDate"])
 
     # Retrieve all accounts that the authenticated account has access to
-    marketers = sync_marketers(access_token, account_id)
+    marketers = sync_marketers(access_token)
 
     # Iterate over all these customer accounts
     for marketer in marketers:
