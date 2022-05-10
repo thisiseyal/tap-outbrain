@@ -29,12 +29,10 @@ DEFAULT_STATE = {
     'campaign_performance': {}
 }
 
-DEFAULT_START_DATE = '2022-05-01'
+START_DATE = '2022-05-08'
 
-# We can retrieve at most 2 campaigns per minute. We only have 5.5 hours
-# to run so that works out to about 660 (120 campaigns per hour * 5.5 =
-# 660) campaigns.
-TAP_CAMPAIGN_COUNT_ERROR_CEILING = 660
+# Increased to 10 campaigns per minute
+TAP_CAMPAIGN_COUNT_ERROR_CEILING = 3000
 MARKETERS_CAMPAIGNS_MAX_LIMIT = 50
 # This is an arbitrary limit and can be tuned later down the road if we
 # see need for it. (Tested with 200 at least)
@@ -200,10 +198,10 @@ def sync_performance(state, access_token, account_id, table_name, state_sub_id,
 
                                 {'campaignId': '000b...'}
     """
-    # sync 2 days before last saved date, or DEFAULT_START_DATE
+    # sync 2 days before last saved date, or START_DATE
     from_date = datetime.datetime.strptime(
         state.get(table_name, {})
-            .get(state_sub_id, DEFAULT_START_DATE),
+            .get(state_sub_id, START_DATE),
         '%Y-%m-%d').date() - datetime.timedelta(days=2)
 
     to_date = datetime.date.today()
@@ -272,10 +270,10 @@ def sync_performance(state, access_token, account_id, table_name, state_sub_id,
         from_date = new_from_date
 
         if last_request_start is not None and \
-                (time.time() - last_request_end.timestamp()) < 30:
-            to_sleep = 30 - (time.time() - last_request_end.timestamp())
+                (time.time() - last_request_end.timestamp()) < 6:
+            to_sleep = 6 - (time.time() - last_request_end.timestamp())
             LOGGER.info(
-                'Limiting to 2 requests per minute. Sleeping {} sec '
+                'Limiting to 10 requests per minute. Sleeping {} sec '
                 'before making the next reporting request.'
                     .format(to_sleep))
             time.sleep(to_sleep)
@@ -339,12 +337,12 @@ def sync_campaign_page(state, access_token, account_id, campaign_page):
 
 
 def sync_campaigns(state, access_token, account_id):
-    LOGGER.info('Syncing campaigns.')
+    LOGGER.info(f'sync_campaigns: Syncing campaigns for marketer account {account_id}')
 
     for campaign_page in get_campaign_pages(account_id, access_token):
         sync_campaign_page(state, access_token, account_id, campaign_page)
 
-    LOGGER.info('Done!')
+    LOGGER.info('sync_campaigns: Done!')
 
 
 def parse_marketer(marketer):
@@ -377,26 +375,26 @@ def get_marketers(access_token):
 
 
 def sync_marketers(access_token):
-    LOGGER.info('Syncing marketers.')
+    LOGGER.info('sync_marketers: Syncing marketers.')
 
     # Retrieve account data
     marketers = get_marketers(access_token)
 
     # Parse data types
-    marketers = map(parse_marketer, marketers)
+    marketers = list(map(parse_marketer, marketers))
 
     # Emit rows
     for marketer in marketers:
         singer.write_record('marketer', marketer, time_extracted=utils.now())
 
-    LOGGER.info('Done!')
+    LOGGER.info('sync_marketers: Done!')
 
     return marketers
 
 
 def sync(config, state = None, catalog = None):
     # pylint: disable=global-statement
-    global DEFAULT_START_DATE
+    global START_DATE
     if not state:
         state = DEFAULT_STATE
 
@@ -419,7 +417,7 @@ def sync(config, state = None, catalog = None):
         account_id = config['account_id']
 
     if 'start_date' in config:
-        DEFAULT_START_DATE = config['start_date']
+        START_DATE = config['start_date'][:10]
 
     access_token = config.get('access_token')
 
@@ -454,6 +452,7 @@ def sync(config, state = None, catalog = None):
 
     # Iterate over all these customer accounts
     for marketer in marketers:
+        LOGGER.info(f"Iterating {marketer['id']}")
         sync_campaigns(state, access_token, marketer['id'])
 
 @utils.handle_top_exception(LOGGER)
