@@ -338,8 +338,11 @@ def sync_campaign_page(state, access_token, account_id, campaign_page):
 
 def sync_campaigns(state, access_token, account_id):
     LOGGER.info(f'sync_campaigns: Syncing campaigns for marketer account {account_id}')
+    campaign_pages = list(get_campaign_pages(account_id, access_token)) # de-iterate for logging
 
-    for campaign_page in get_campaign_pages(account_id, access_token):
+    LOGGER.info(f'Found {len(campaign_pages)} for account {account_id}, getting performance reports..')
+
+    for campaign_page in campaign_pages:
         sync_campaign_page(state, access_token, account_id, campaign_page)
 
     LOGGER.info('sync_campaigns: Done!')
@@ -421,7 +424,7 @@ def sync(config, state = None, catalog = None):
 
     access_token = config.get('access_token')
 
-    if access_token is None:
+    if not access_token:
         if missing_keys:
             LOGGER.fatal("Missing {}.".format(", ".join(missing_keys)))
             raise RuntimeError
