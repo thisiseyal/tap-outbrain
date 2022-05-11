@@ -450,10 +450,13 @@ def sync(config, state = None, catalog = None):
     # Retrieve all accounts that the authenticated account has access to
     marketers = sync_marketers(access_token)
 
+    account_ids_to_iterate = list(config.get('account_ids', [marketer['id'] for marketer in marketers]))
+    LOGGER.info(f"Iterating {len(account_ids_to_iterate)} marketer accounts ({account_ids_to_iterate})")
+
     # Iterate over all these customer accounts
-    for marketer in marketers:
-        LOGGER.info(f"Iterating {marketer['id']}")
-        sync_campaigns(state, access_token, marketer['id'])
+    for account_id in account_ids_to_iterate:
+        LOGGER.info(f"Iterating {account_id}")
+        sync_campaigns(state, access_token, account_id)
 
 @utils.handle_top_exception(LOGGER)
 def main():
