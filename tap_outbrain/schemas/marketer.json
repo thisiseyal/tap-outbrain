@@ -14,7 +14,7 @@
             "type": "boolean"
         },
         "id": {
-            "type": "number"
+            "type": "string"
         },
         "lastModified": {
             "format": "date-time",
