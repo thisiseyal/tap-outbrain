@@ -126,9 +126,10 @@ def parse_datetime(date_time):
 def parse_performance(result, extra_fields):
     metrics = result.get('metrics', {})
     metadata = result.get('metadata', {})
+    from_date = metadata.get('fromDate')
 
     to_return = {
-        'fromDate': metadata.get('fromDate'),
+        'fromDate': from_date,
         'impressions': int(metrics.get('impressions', 0)),
         'clicks': int(metrics.get('clicks', 0)),
         'ctr': float(metrics.get('ctr', 0.0)),
@@ -164,15 +165,15 @@ def get_date_ranges(start, end, interval_in_days):
     return to_return
 
 
-def sync_campaign_performance(state, access_token, account_id, campaign_id):
+def sync_campaign_performance(state, access_token, account_id, campaign_id, extra_data={}):
     return sync_performance(
         state,
         access_token,
         account_id,
         'campaign_performance',
         campaign_id,
-        {'campaignId': campaign_id},
-        {'campaignId': campaign_id})
+        {'campaignId': campaign_id, **extra_data},
+        {'campaignId': campaign_id, **extra_data})
 
 
 def sync_performance(state, access_token, account_id, table_name, state_sub_id,
@@ -333,7 +334,7 @@ def sync_campaign_page(state, access_token, account_id, campaign_page):
         singer.write_record('campaign', campaign,
                             time_extracted=utils.now())
         sync_campaign_performance(state, access_token, account_id,
-                                  campaign.get('id'))
+                                  campaign.get('id'), {'campaignName': campaign.get('name')})
 
 
 def sync_campaigns(state, access_token, account_id):

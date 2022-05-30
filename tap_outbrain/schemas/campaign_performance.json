@@ -4,6 +4,10 @@
             "description": "The campaign ID plus the start date (day) for this record.",
             "type": "string"
         },
+        "campaignName": {
+            "description": "The (current) campaign name for this record.",
+            "type": "string"
+        },
         "clicks": {
             "description": "Total PromotedLinks clicks across the entire query range.",
             "type": "number"

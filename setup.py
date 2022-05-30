@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 import os.path
 
 setup(name='tap-outbrain',
-      version='0.4.8',
+      version='0.4.9',
       description='Singer.io tap for extracting data from the Outbrain API',
       author='Eyal',
       url='https://singer.io',
