@@ -1,6 +1,7 @@
 # tap-outbrain
+Updated to support Outbrain Amplify API changes, 2022 by Eyal Avni
 
-Author: Connor McArthur (connor@fishtownanalytics.com)
+Original Author: Connor McArthur (connor@fishtownanalytics.com)
 
 ### Development
 
