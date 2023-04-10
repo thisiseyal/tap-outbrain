@@ -11,7 +11,7 @@ setup(name='tap-outbrain',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_outbrain'],
       install_requires=[
-          "singer-python",
+          "singer-python @ https://github.com/Aporia-LTD/singer-python/tarball/master#egg=package-5.13.1",
           "requests"
       ],
       entry_points='''
