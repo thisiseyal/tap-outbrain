@@ -12,7 +12,7 @@ import backoff
 import requests
 import singer
 import singer.requests
-from singer import utils, metadata
+from singer import utils
 from singer.catalog import Catalog, CatalogEntry
 from singer.schema import Schema
 
